@@ -1,2 +1,6 @@
-.\logs\*
-*.*~
+__pycache__
+logs
+data
+results
+*.png
+*.py~
