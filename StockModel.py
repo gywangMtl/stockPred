@@ -1,13 +1,13 @@
-import numpy as np
+import math
 import os
 import random
-import math
+from datetime import datetime, timedelta
+
 import matplotlib.pyplot as plt
-from datetime import datetime
-from datetime import timedelta
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Bidirectional
+import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard
+from tensorflow.keras.layers import LSTM, Bidirectional, Dense, Dropout
+from tensorflow.keras.models import Sequential
 
 BATCH_SIZE = 64
 EPOCHS = 300

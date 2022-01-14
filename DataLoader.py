@@ -1,37 +1,42 @@
+import math
+import os
+import time
+from collections import deque
 from random import random
 from typing import List
+
+import numpy as np
+import pandas as pd
 from numpy.core.numeric import NaN
 from pandas.core.frame import DataFrame
 from sklearn import preprocessing
-from yahoo_fin import stock_info as si
-import numpy as np
-import os
-import time
-import math
 from sklearn.model_selection import train_test_split
-from collections import deque
-
-import pandas as pd
+from yahoo_fin import stock_info as si
 
 YEAR_AS_CIRCLE = math.pi*2/366
+COMMODITY_LIST = ["coffee"]
 
 class DataLoader:
     def __init__(self) -> None:
         pass
     
-    def pureLoad(self, model) -> dict:
+    def pureLoad(self, model) -> DataFrame:
         ticker = model.ticker
-        lookup_step = model.lookup_step
+        feature_columns=model.feature_columns
+
         df = si.get_data(ticker)
         date_now = time.strftime("%Y-%m-%d")
         ticker_data_filename = os.path.join("data", f"{ticker}_{date_now}.csv")
         df.to_csv(ticker_data_filename)
-        result = {}
-        result['df'] = df.copy()
+
+        for col in feature_columns:
+            if col in COMMODITY_LIST:
+                df[col] = self.loadCommodityFromCSV(df, col)
+            assert col in df.columns, f"'{col}' does not exist in the dataframe."
+
         if "date" not in df.columns:
             df["date"] = df.index
-        df['future'] = df['adjclose'].shift(-lookup_step)
-        return result
+        return df
   
     def loadCommodityFromCSV(self, dataFrame, commodity) -> list:
         commodityFile = pd.read_csv(os.path.join("data",f"{commodity}.csv"))
@@ -45,27 +50,12 @@ class DataLoader:
         return priceList 
 
     def load(self, model, shuffle=True, test_size=0.2):
-        ticker = model.ticker
         feature_columns=model.feature_columns
         lookup_step = model.lookup_step
         n_steps = model.sequence_length
-
-        df = si.get_data(ticker)
         result = {}
-
-        result['df'] = df.copy()
-        date_now = time.strftime("%Y-%m-%d")
-        ticker_data_filename = os.path.join("data", f"{ticker}_{date_now}.csv")
-        df.to_csv(ticker_data_filename)
-
-        if "coffee" in feature_columns:
-            df["coffee"] = self.loadCommodityFromCSV(df, "coffee")
-        for col in feature_columns:
-            assert col in df.columns, f"'{col}' does not exist in the dataframe."
-
-        if "date" not in df.columns:
-            df["date"] = df.index
-
+        df = self.pureLoad(model)
+        result["df"] = df.copy()
         #yearly circle
         df["doy_x"] = df["date"].map(lambda time: math.sin(time.day_of_year * YEAR_AS_CIRCLE))
         df["doy_y"] = df["date"].map(lambda time: math.cos(time.day_of_year * YEAR_AS_CIRCLE))
@@ -79,11 +69,9 @@ class DataLoader:
             df[column] = scaler.fit_transform(
             np.expand_dims(df[column].values, axis=1))
             column_scaler[column] = scaler
-
         result["column_scaler"] = column_scaler
 
         df['future'] = df['adjclose'].shift(-lookup_step)
-
 
         last_sequence = np.array(df[feature_columns].tail(lookup_step))
 
