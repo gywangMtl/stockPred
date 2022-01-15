@@ -21,6 +21,7 @@ class DataLoader:
     def __init__(self) -> None:
         f = open("twitter_token.txt", "r")
         self.bear_token = f.readline()
+        f.close()
     
     def loadTwiterStats(self, ticker):
         auth2 = OAuth2(bearer_token=self.bear_token)
