@@ -11,6 +11,7 @@ from numpy.core.numeric import NaN
 from pandas.core.frame import DataFrame
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
+from twitter import OAuth2, Twitter
 from yahoo_fin import stock_info as si
 
 YEAR_AS_CIRCLE = math.pi*2/366
@@ -18,8 +19,14 @@ COMMODITY_LIST = ["coffee"]
 
 class DataLoader:
     def __init__(self) -> None:
-        pass
+        f = open("twitter_token.txt", "r")
+        self.bear_token = f.readline()
     
+    def loadTwiterStats(self, ticker):
+        auth2 = OAuth2(bearer_token=self.bear_token)
+        t = Twitter(auth=auth2)
+        s = t.search.tweets(q=f'${ticker}')
+
     def pureLoad(self, model) -> DataFrame:
         ticker = model.ticker
         feature_columns=model.feature_columns

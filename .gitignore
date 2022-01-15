@@ -4,3 +4,6 @@ data
 results
 *.png
 *.py~
+
+#twitter token file
+twitter_token.txt
