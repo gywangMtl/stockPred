@@ -1,6 +1,7 @@
 import math
 import os
 import time
+import datetime
 from collections import deque
 from random import random
 from typing import List
@@ -11,27 +12,32 @@ from numpy.core.numeric import NaN
 from pandas.core.frame import DataFrame
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
-from twitter import OAuth2, Twitter
+#from twitter import OAuth2, Twitter
 from yahoo_fin import stock_info as si
 
 YEAR_AS_CIRCLE = math.pi*2/366
 COMMODITY_LIST = ["coffee"]
+TWO_YEARS = datetime.timedelta(days=2*365)
 
 class DataLoader:
     def __init__(self) -> None:
-        f = open("twitter_token.txt", "r")
-        self.bear_token = f.readline()
-    
+        #f = open("twitter_token.txt", "r")
+        #self.bear_token = f.readline()
+        pass
+
     def loadTwiterStats(self, ticker):
-        auth2 = OAuth2(bearer_token=self.bear_token)
-        t = Twitter(auth=auth2)
-        s = t.search.tweets(q=f'${ticker}')
+        #auth2 = OAuth2(bearer_token=self.bear_token)
+        #t = Twitter(auth=auth2)
+        #s = t.search.tweets(q=f'${ticker}')
+        pass
 
     def pureLoad(self, model) -> DataFrame:
         ticker = model.ticker
         feature_columns=model.feature_columns
-
-        df = si.get_data(ticker)
+        today = datetime.date.today()
+        
+        two_years_ago = str(today - TWO_YEARS)
+        df = si.get_data(ticker, start_date = two_years_ago)
         date_now = time.strftime("%Y-%m-%d")
         ticker_data_filename = os.path.join("data", f"{ticker}_{date_now}.csv")
         df.to_csv(ticker_data_filename)
